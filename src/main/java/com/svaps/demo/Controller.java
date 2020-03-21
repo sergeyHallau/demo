@@ -84,16 +84,16 @@ public class Controller {
     @RequestMapping(value = "/share", method = RequestMethod.POST)
     @Transactional
     public ResponseEntity shareFile(@RequestBody ShareRequest shareRequest, Principal principal) {
-        User user = userRepository.getOne(shareRequest.email);
-        return fileMetaRepository.findById(shareRequest.fileId).map(fileMeta -> {
+        return userRepository.findById(shareRequest.email).flatMap(user ->
+            fileMetaRepository.findById(shareRequest.fileId).map(fileMeta -> {
 
-            if(!fileMeta.getOwner().getEmail().equals(principal.getName()))
-                return new ResponseEntity(HttpStatus.FORBIDDEN);
+                if (!fileMeta.getOwner().getEmail().equals(principal.getName()))
+                    return new ResponseEntity(HttpStatus.FORBIDDEN);
 
-            user.addSharedFile(fileMeta);
-            userRepository.save(user);
-            return new ResponseEntity(HttpStatus.OK);
-        })
+                user.addSharedFile(fileMeta);
+                userRepository.save(user);
+                return new ResponseEntity(HttpStatus.OK);
+            }))
             .orElse(new ResponseEntity(HttpStatus.NOT_FOUND));
 
     }
