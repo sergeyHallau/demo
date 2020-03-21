@@ -9,6 +9,7 @@ import com.svaps.demo.repositories.FileMetaRepository;
 import com.svaps.demo.repositories.UserRepository;
 import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -36,6 +37,9 @@ public class Controller {
 
     @Autowired
     FileMetaRepository fileMetaRepository;
+
+    @Value("${com.demo.uploads.directory}")
+    private String uploadDirectory;
 
     @RequestMapping(value = "/register", method = RequestMethod.POST)
     public ResponseEntity register(@RequestBody User userToCreate) {
@@ -68,9 +72,9 @@ public class Controller {
     @RequestMapping(value = "/file", method = RequestMethod.POST)
     @Transactional
     public ResponseEntity<FileCreatedResponse> uploadFile(@RequestParam("file") MultipartFile file, Principal principal) throws IOException {
-
+        System.out.println(uploadDirectory);
         User currentUser = userRepository.getOne(principal.getName());
-        val filePath = "/home/hallau/dev/" + Instant.now().toString() + "_" + file.getOriginalFilename();
+        val filePath = uploadDirectory + "/" + Instant.now().toString() + "_" + file.getOriginalFilename();
         file.transferTo(new File(filePath));
         FileMeta fileMeta = fileMetaRepository.save(new FileMeta(filePath, currentUser));
 
